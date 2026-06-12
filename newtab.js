@@ -1,123 +1,262 @@
 /**
- * newtab.js  –  Phase 2: Folder-based categories with collapsible sections
+ * newtab.js  –  Phase 3: Dashboard UI
  *
- * Strategy:
- *  - Folders  → <details open> + <summary> (collapsible, open by default)
- *  - Bookmarks → <li><a target="_blank">
- *  - Nested folders are rendered recursively inside the parent <details>
- *  - Top-level Chrome root nodes ("Bookmarks bar", "Other bookmarks", etc.)
- *    are treated as top-level categories.
+ * Features:
+ *  - Favicon via Google S2 API with emoji fallback
+ *  - Top-level folders → collapsible category panels
+ *  - Nested folders → sub-sections inside a panel
+ *  - Staggered card animation using CSS animation-delay
+ *  - Live bookmark + folder count in header badge
  */
 
-const root   = document.getElementById('bookmark-root');
-const status = document.getElementById('status');
+/* ── DOM refs ──────────────────────────────────────────────────────── */
+const main        = document.getElementById('main');
+const totalBadge  = document.getElementById('total-badge');
 
-/* ── Helpers ──────────────────────────────────────────────────────────── */
+/* ── Counters ──────────────────────────────────────────────────────── */
+let totalBookmarks = 0;
+
+/* ── Favicon helper ────────────────────────────────────────────────── */
+const FAVICON_API = 'https://www.google.com/s2/favicons?sz=32&domain_url=';
 
 /**
- * Create a collapsible <details> block for a folder.
- * @param {string}  title      - Folder display name
- * @param {boolean} openByDefault - Whether details[open] is set initially
- * @returns {{ details: HTMLElement, contentTarget: HTMLElement }}
- *   contentTarget is the element children should be appended to.
+ * Return a favicon <img> element; falls back to a letter/emoji on error.
  */
-function createFolderBlock(title, openByDefault) {
-  const details  = document.createElement('details');
-  if (openByDefault) details.open = true;
+function makeFavicon(url, title) {
+  const wrap = document.createElement('div');
+  wrap.className = 'favicon-wrap';
 
-  const summary  = document.createElement('summary');
-  summary.textContent = `📁 ${title || 'Untitled Folder'}`;
-  details.appendChild(summary);
+  const img = document.createElement('img');
+  img.className = 'favicon';
+  img.loading   = 'lazy';
+  img.alt       = '';
 
-  // Children go into a wrapper div inside <details>
-  const wrapper = document.createElement('div');
-  details.appendChild(wrapper);
+  try {
+    const domain = new URL(url).hostname;
+    img.src = `${FAVICON_API}${encodeURIComponent(domain)}`;
+  } catch {
+    img.src = '';
+  }
 
-  return { details, contentTarget: wrapper };
+  img.onerror = () => {
+    wrap.innerHTML = '';
+    const fb = document.createElement('span');
+    fb.className   = 'favicon-fallback';
+    fb.textContent = (title || '?')[0].toUpperCase();
+    wrap.appendChild(fb);
+  };
+
+  wrap.appendChild(img);
+  return wrap;
 }
 
-/**
- * Create a <ul class="bookmark-list"> containing one <li> per bookmark node.
- * Folders inside this level are rendered as nested <details> blocks.
- *
- * @param {chrome.bookmarks.BookmarkTreeNode[]} nodes
- * @param {HTMLElement} container  - element to append into
- * @param {number}      depth      - current nesting depth (for auto-open logic)
- */
+/* ── Bookmark card ─────────────────────────────────────────────────── */
+let cardIndex = 0;
+
+function makeCard(node) {
+  const a = document.createElement('a');
+  a.className           = 'bookmark-card';
+  a.href                = node.url;
+  a.target              = '_blank';
+  a.rel                 = 'noopener noreferrer';
+  a.title               = node.url;
+  a.style.animationDelay = `${cardIndex * 18}ms`;
+  cardIndex++;
+
+  a.appendChild(makeFavicon(node.url, node.title));
+
+  const span = document.createElement('span');
+  span.className   = 'bookmark-title';
+  span.textContent = node.title || node.url;
+  a.appendChild(span);
+
+  return a;
+}
+
+/* ── Count bookmarks in subtree ────────────────────────────────────── */
+function countBookmarks(nodes) {
+  return nodes.reduce((sum, n) => {
+    if (n.url) return sum + 1;
+    if (n.children) return sum + countBookmarks(n.children);
+    return sum;
+  }, 0);
+}
+
+/* ── Render bookmarks + nested folders into a container ────────────── */
 function renderChildren(nodes, container, depth) {
-  // Separate bookmarks and sub-folders so we can render them together in order
-  // (we preserve original order from the tree)
-  const ul = document.createElement('ul');
-  ul.className = 'bookmark-list';
-  let hasBookmarks = false;
+  const grid = document.createElement('div');
+  grid.className = 'bookmarks-grid';
 
   nodes.forEach(node => {
     if (node.url) {
-      // ── Bookmark link ──────────────────────────────────────────
-      const li = document.createElement('li');
-      const a  = document.createElement('a');
-      a.href        = node.url;
-      a.textContent = node.title || node.url;
-      a.target      = '_blank';
-      a.rel         = 'noopener noreferrer';
-      li.appendChild(a);
-      ul.appendChild(li);
-      hasBookmarks = true;
+      // Direct bookmark
+      grid.appendChild(makeCard(node));
     } else {
-      // ── Sub-folder: flush the current <ul> first, then add a <details> ──
-      if (hasBookmarks || ul.children.length > 0) {
-        container.appendChild(ul.cloneNode(true));
-        // Reset the ul for items after this folder
-        while (ul.firstChild) ul.removeChild(ul.firstChild);
-        hasBookmarks = false;
+      // Sub-folder → flush current grid, then render sub-section
+      if (grid.children.length > 0) {
+        container.appendChild(grid.cloneNode(true));
+        while (grid.firstChild) grid.removeChild(grid.firstChild);
       }
 
-      // Nested folders are auto-collapsed beyond depth 1
-      const { details, contentTarget } = createFolderBlock(node.title, depth < 2);
-      if (node.children && node.children.length > 0) {
-        renderChildren(node.children, contentTarget, depth + 1);
-      }
-      container.appendChild(details);
+      if (!node.children || node.children.length === 0) return;
+
+      const sub = document.createElement('div');
+      sub.className = 'subcategory';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'subcategory-header';
+
+      const ic = document.createElement('span');
+      ic.textContent = '📂';
+      ic.style.fontSize = '13px';
+      hdr.appendChild(ic);
+
+      const ttl = document.createElement('span');
+      ttl.className   = 'subcategory-title';
+      ttl.textContent = node.title || 'Untitled';
+      hdr.appendChild(ttl);
+
+      const cnt = document.createElement('span');
+      cnt.className   = 'subcategory-count';
+      cnt.textContent = `(${countBookmarks(node.children)})`;
+      hdr.appendChild(cnt);
+
+      sub.appendChild(hdr);
+      renderChildren(node.children, sub, depth + 1);
+      container.appendChild(sub);
     }
   });
 
-  // Append any remaining bookmarks
-  if (ul.children.length > 0) {
-    container.appendChild(ul);
+  if (grid.children.length > 0) {
+    container.appendChild(grid);
   }
 }
 
-/* ── Entry point ──────────────────────────────────────────────────────── */
+/* ── Build a top-level category panel ─────────────────────────────── */
+function makeCategory(folderNode) {
+  const count = countBookmarks(folderNode.children || []);
+  if (count === 0 && !(folderNode.children && folderNode.children.length)) return null;
 
+  totalBookmarks += count;
+
+  /* wrapper */
+  const section = document.createElement('section');
+  section.className = 'category';
+
+  /* ── header (click to collapse) ── */
+  const hdr = document.createElement('div');
+  hdr.className   = 'category-header';
+  hdr.setAttribute('role', 'button');
+  hdr.setAttribute('tabindex', '0');
+  hdr.setAttribute('aria-expanded', 'true');
+
+  const left = document.createElement('div');
+  left.className = 'category-header-left';
+
+  const icon = document.createElement('div');
+  icon.className   = 'category-icon';
+  icon.textContent = '📁';
+  left.appendChild(icon);
+
+  const title = document.createElement('span');
+  title.className   = 'category-title';
+  title.textContent = folderNode.title || 'Untitled';
+  left.appendChild(title);
+
+  hdr.appendChild(left);
+
+  const cntBadge = document.createElement('span');
+  cntBadge.className   = 'category-count';
+  cntBadge.textContent = count;
+  hdr.appendChild(cntBadge);
+
+  const chevron = document.createElement('span');
+  chevron.className   = 'category-chevron';
+  chevron.textContent = '▾';
+  chevron.setAttribute('aria-hidden', 'true');
+  hdr.appendChild(chevron);
+
+  section.appendChild(hdr);
+
+  /* ── body ── */
+  const body = document.createElement('div');
+  body.className = 'category-body';
+
+  if (folderNode.children && folderNode.children.length > 0) {
+    renderChildren(folderNode.children, body, 1);
+  }
+
+  // Set natural height for smooth collapse animation
+  section.appendChild(body);
+
+  /* ── Toggle logic ── */
+  function toggle() {
+    const isCollapsed = section.classList.toggle('collapsed');
+    hdr.setAttribute('aria-expanded', String(!isCollapsed));
+
+    if (!isCollapsed) {
+      // Expanding: set max-height to scrollHeight so transition plays
+      body.style.maxHeight = body.scrollHeight + 'px';
+    } else {
+      body.style.maxHeight = body.scrollHeight + 'px'; // pin before CSS zeros it
+      requestAnimationFrame(() => {
+        body.style.maxHeight = '0px';
+      });
+    }
+  }
+
+  // Start open
+  body.style.maxHeight = 'none'; // allow natural flow on first paint
+
+  hdr.addEventListener('click', toggle);
+  hdr.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+
+  return section;
+}
+
+/* ── Entry point ───────────────────────────────────────────────────── */
 chrome.bookmarks.getTree(function (treeNodes) {
-  status.remove();
-
   if (!treeNodes || treeNodes.length === 0) {
-    const msg = document.createElement('p');
-    msg.textContent = 'No bookmarks found.';
-    root.appendChild(msg);
+    showEmpty();
     return;
   }
 
-  // treeNodes[0] is the invisible root; its children are the real top-level
-  // folders ("Bookmarks bar", "Other bookmarks", "Mobile bookmarks").
-  const topLevel = treeNodes[0].children || [];
+  const topLevel = (treeNodes[0].children || []).filter(
+    n => n.children && n.children.length > 0
+  );
 
-  topLevel.forEach(folderNode => {
-    // Skip empty top-level folders silently
-    if (!folderNode.children || folderNode.children.length === 0) return;
+  if (topLevel.length === 0) {
+    showEmpty();
+    return;
+  }
 
-    const { details, contentTarget } =
-      createFolderBlock(folderNode.title, true /* top-level open by default */);
-
-    renderChildren(folderNode.children, contentTarget, 1);
-    root.appendChild(details);
+  topLevel.forEach(folder => {
+    const panel = makeCategory(folder);
+    if (panel) main.appendChild(panel);
   });
 
-  // Edge case: no renderable content at all
-  if (root.children.length === 0) {
-    const msg = document.createElement('p');
-    msg.textContent = 'No bookmarks found.';
-    root.appendChild(msg);
-  }
+  // After all panels are added, lock max-heights so collapse animation works
+  requestAnimationFrame(() => {
+    main.querySelectorAll('.category-body').forEach(b => {
+      if (b.style.maxHeight === 'none') {
+        b.style.maxHeight = b.scrollHeight + 'px';
+      }
+    });
+
+    totalBadge.textContent =
+      `${totalBookmarks} bookmark${totalBookmarks !== 1 ? 's' : ''}`;
+  });
 });
+
+function showEmpty() {
+  totalBadge.textContent = '0 bookmarks';
+  main.innerHTML = `
+    <div class="empty-state">
+      <span class="empty-state-icon">🔖</span>
+      <h2>No bookmarks yet</h2>
+      <p>Add some bookmarks in Chrome and they'll appear here.</p>
+    </div>
+  `;
+}
