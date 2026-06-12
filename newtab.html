@@ -562,6 +562,326 @@
     .no-results p { font-size: 12px; }
 
     /* ═══════════════════════════════════════════════════════════════
+       LIGHT THEME  (toggled via <html data-theme="light">)
+    ═══════════════════════════════════════════════════════════════ */
+    [data-theme="light"] {
+      --bg:            #f1f5f9;
+      --bg-2:          #e8edf4;
+      --surface:       rgba(0,0,0,0.04);
+      --surface-hover: rgba(0,0,0,0.07);
+      --border:        rgba(0,0,0,0.09);
+      --border-hover:  rgba(0,0,0,0.18);
+      --text-1:        #0f172a;
+      --text-2:        #475569;
+      --text-3:        #94a3b8;
+      --shadow-glow:   0 0 0 1px rgba(99,102,241,0.3), 0 8px 24px rgba(99,102,241,0.12);
+    }
+
+    [data-theme="light"] body { background: var(--bg); }
+
+    [data-theme="light"] body::before {
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(99,102,241,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.04) 0%, transparent 60%);
+    }
+
+    [data-theme="light"] .header {
+      background: rgba(241,245,249,0.88);
+    }
+
+    [data-theme="light"] .category-header {
+      background: rgba(0,0,0,0.02);
+    }
+
+    [data-theme="light"] .category-header:hover {
+      background: rgba(0,0,0,0.04);
+    }
+
+    [data-theme="light"] .settings-drawer {
+      background: #f8fafc;
+    }
+
+    [data-theme="light"] .favicon-wrap {
+      background: rgba(0,0,0,0.06);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       VIEW MODES
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* ── List view ── */
+    body.view-list .bookmarks-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    body.view-list .bookmark-card,
+    body.view-list .search-card {
+      padding: 9px 14px;
+    }
+
+    /* ── Card sizes ── */
+    body.card-sm .bookmarks-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    body.card-md .bookmarks-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    body.card-lg .bookmarks-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SETTINGS BUTTON (header)
+    ═══════════════════════════════════════════════════════════════ */
+    .settings-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.25s;
+    }
+
+    .settings-btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-hover);
+      color: var(--text-1);
+      transform: rotate(45deg);
+    }
+
+    .settings-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      transform: rotate(90deg);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SETTINGS OVERLAY
+    ═══════════════════════════════════════════════════════════════ */
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .settings-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SETTINGS DRAWER
+    ═══════════════════════════════════════════════════════════════ */
+    .settings-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 300px;
+      background: #131929;
+      border-left: 1px solid var(--border);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .settings-drawer.open {
+      transform: translateX(0);
+    }
+
+    /* ── Drawer header ── */
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .drawer-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .drawer-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-3);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .drawer-close:hover {
+      background: var(--surface-hover);
+      color: var(--text-1);
+    }
+
+    /* ── Drawer body (scrollable) ── */
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Settings section ── */
+    .settings-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .settings-row:last-child { margin-bottom: 0; }
+
+    .settings-row-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      flex-shrink: 0;
+    }
+
+    /* ── Button group (option pills) ── */
+    .btn-group {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+    }
+
+    .btn-opt {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-3);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-opt:hover {
+      background: rgba(255,255,255,0.07);
+      color: var(--text-1);
+    }
+
+    .btn-opt.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Category toggle rows ── */
+    .cat-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cat-toggle-row:last-child { border-bottom: none; }
+
+    .cat-toggle-name {
+      font-size: 12px;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 34px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .toggle input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle input:checked + .toggle-track {
+      background: var(--accent);
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle input:checked + .toggle-track::after {
+      transform: translateX(14px);
+    }
+
+    /* ── Divider ── */
+    .drawer-divider {
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       CATEGORY — hidden state
+    ═══════════════════════════════════════════════════════════════ */
+    .category.cat-hidden {
+      display: none;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
        RESPONSIVE
     ═══════════════════════════════════════════════════════════════ */
     @media (max-width: 700px) {
@@ -569,11 +889,80 @@
       .main, .search-panel { padding: 16px 16px 48px; }
       .bookmarks-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
       .search-kbd { display: none; }
+      .settings-drawer { width: 100%; }
     }
 
     @media (max-width: 420px) {
       .bookmarks-grid { grid-template-columns: 1fr 1fr; }
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PHASE 6 — DRAG & DROP
+    ═══════════════════════════════════════════════════════════════ */
+    .drag-handle {
+      color: var(--text-3); font-size: 13px; padding: 0 4px 0 0;
+      cursor: grab; opacity: 0; transition: opacity 0.15s; flex-shrink: 0;
+      user-select: none;
+    }
+    .category-header:hover .drag-handle { opacity: 1; }
+    .category.dragging {
+      opacity: 0.45; border-style: dashed;
+    }
+    .category.drag-over {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+    /* Bookmark card drag */
+    .bookmark-card.card-dragging { opacity: 0.4; border-style: dashed; cursor: grabbing; }
+    .bookmark-card.card-drag-over { border-color: var(--accent); box-shadow: var(--shadow-glow); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PHASE 6 — FLOATING ACTION BUTTON
+    ═══════════════════════════════════════════════════════════════ */
+    .fab-wrap {
+      position: fixed; bottom: 28px; right: 28px;
+      z-index: 150;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+    }
+    .fab-main {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border: none; color: #fff; font-size: 22px; font-weight: 300;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.45);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .fab-main:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(99,102,241,0.55); }
+    .fab-main.open  { transform: rotate(45deg); }
+    .fab-actions {
+      display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+      max-height: 0; overflow: hidden; opacity: 0; pointer-events: none;
+      transition: max-height 0.3s ease, opacity 0.2s;
+    }
+    .fab-actions.open { max-height: 260px; opacity: 1; pointer-events: all; }
+    .fab-row {
+      display: flex; align-items: center; gap: 10px;
+      animation: fabIn 0.2s ease both;
+    }
+    @keyframes fabIn {
+      from { opacity:0; transform: translateY(8px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .fab-label {
+      font-size: 11px; font-weight: 600; color: var(--text-2);
+      background: rgba(13,17,23,0.92); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 10px; white-space: nowrap;
+      backdrop-filter: blur(8px);
+    }
+    [data-theme="light"] .fab-label { background: rgba(248,250,252,0.92); }
+    .fab-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-1); font-size: 15px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .fab-btn:hover { background: var(--surface-hover); transform: scale(1.1); }
   </style>
 </head>
 <body>
@@ -607,6 +996,7 @@
     </div>
   </header>
 
+
   <!-- ── SEARCH RESULTS PANEL (shown when typing) ─────── -->
   <div class="search-panel hidden" id="search-panel" role="region" aria-label="Search results" aria-live="polite">
     <p class="search-summary" id="search-summary"></p>
@@ -622,6 +1012,84 @@
   <main class="main" id="main" role="main">
     <!-- Rendered by newtab.js -->
   </main>
+
+  <!-- ── FLOATING ACTION BUTTON ────────────────────── -->
+  <div class="fab-wrap" id="fab-wrap">
+    <div class="fab-actions" id="fab-actions">
+      <div class="fab-row" style="animation-delay:.05s">
+        <span class="fab-label">Scroll to Top</span>
+        <button class="fab-btn" id="fab-top" title="Scroll to top">⬆️</button>
+      </div>
+      <div class="fab-row" style="animation-delay:.10s">
+        <span class="fab-label">Settings</span>
+        <button class="fab-btn" id="fab-settings" title="Settings">⚙️</button>
+      </div>
+      <div class="fab-row" style="animation-delay:.15s">
+        <span class="fab-label">Refresh Bookmarks</span>
+        <button class="fab-btn" id="fab-refresh" title="Refresh bookmarks">🔄</button>
+      </div>
+    </div>
+    <button class="fab-main" id="fab-main" aria-label="Quick actions" aria-expanded="false">+</button>
+  </div>
+
+  <!-- ── SETTINGS OVERLAY ──────────────────────────────── -->
+  <div class="settings-overlay" id="settings-overlay" aria-hidden="true"></div>
+
+  <!-- ── SETTINGS DRAWER ───────────────────────────────── -->
+  <aside class="settings-drawer" id="settings-drawer" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="drawer-header">
+      <span class="drawer-title">⚙️ Settings</span>
+      <button class="drawer-close" id="settings-close" aria-label="Close settings">✕</button>
+    </div>
+
+    <div class="drawer-body">
+
+      <!-- Appearance -->
+      <div>
+        <div class="settings-section-label">Appearance</div>
+        <div class="settings-row">
+          <span class="settings-row-label">Theme</span>
+          <div class="btn-group" id="theme-group">
+            <button class="btn-opt" data-value="dark"  id="theme-dark">🌙 Dark</button>
+            <button class="btn-opt" data-value="light" id="theme-light">☀️ Light</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-divider"></div>
+
+      <!-- Layout -->
+      <div>
+        <div class="settings-section-label">Layout</div>
+        <div class="settings-row">
+          <span class="settings-row-label">View</span>
+          <div class="btn-group" id="view-group">
+            <button class="btn-opt" data-value="grid" id="view-grid">⊞ Grid</button>
+            <button class="btn-opt" data-value="list" id="view-list">≡ List</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <span class="settings-row-label">Card Size</span>
+          <div class="btn-group" id="size-group">
+            <button class="btn-opt" data-value="sm" id="size-sm">S</button>
+            <button class="btn-opt" data-value="md" id="size-md">M</button>
+            <button class="btn-opt" data-value="lg" id="size-lg">L</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-divider"></div>
+
+      <!-- Categories -->
+      <div>
+        <div class="settings-section-label">Show / Hide Categories</div>
+        <div id="category-toggles">
+          <p style="font-size:11px;color:var(--text-3)">Loading…</p>
+        </div>
+      </div>
+
+    </div>
+  </aside>
 
   <script src="newtab.js"></script>
 </body>
