@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark Viewer",
+  "version": "1.0.0",
+  "description": "Replaces the new tab page with a list of all your bookmarks.",
+  "permissions": [
+    "bookmarks"
+  ],
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  }
+}
