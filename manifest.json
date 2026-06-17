@@ -7,6 +7,16 @@
     "bookmarks",
     "storage"
   ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "images/image_low.jpg"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   }
