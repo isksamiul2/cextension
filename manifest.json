@@ -10,7 +10,11 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "images/image_low.jpg"
+        "images/*.jpg",
+        "images/*.jpeg",
+        "images/*.png",
+        "images/*.webp",
+        "images/*.gif"
       ],
       "matches": [
         "<all_urls>"

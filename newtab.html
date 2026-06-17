@@ -582,7 +582,12 @@
       --shadow-glow:   0 0 0 1px rgba(99,102,241,0.3), 0 8px 24px rgba(99,102,241,0.12);
     }
 
-    [data-theme="light"] body { background: var(--bg); }
+    [data-theme="light"] body {
+      background:
+        linear-gradient(rgba(241,245,249,0.70), rgba(241,245,249,0.84)),
+        var(--bg-image) center / cover fixed no-repeat,
+        var(--bg);
+    }
 
     [data-theme="light"] body::before {
       background:
@@ -772,6 +777,12 @@
       margin-bottom: 12px;
     }
 
+    .settings-row-stacked {
+      align-items: stretch;
+      flex-direction: column;
+      gap: 8px;
+    }
+
     .settings-row:last-child { margin-bottom: 0; }
 
     .settings-row-label {
@@ -784,6 +795,7 @@
     /* ── Button group (option pills) ── */
     .btn-group {
       display: flex;
+      flex-wrap: wrap;
       gap: 4px;
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
@@ -813,6 +825,54 @@
     .btn-opt.active {
       background: var(--accent);
       color: #fff;
+    }
+
+    .background-picker {
+      width: 100%;
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      overflow-x: auto;
+      background: transparent;
+      border: none;
+      padding: 0;
+      padding-bottom: 4px;
+    }
+
+    .background-opt {
+      width: 90px;
+      flex: 0 0 90px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      text-align: left;
+    }
+
+    .background-opt:hover {
+      border-color: var(--border-hover);
+    }
+
+    .background-opt.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(99,102,241,0.22);
+    }
+
+    .background-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      display: block;
+      border-radius: 5px;
+      object-fit: cover;
+      background: rgba(255,255,255,0.07);
+      margin-bottom: 5px;
+    }
+
+    .background-name {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: inherit;
     }
 
     /* ── Category toggle rows ── */
@@ -1049,20 +1109,6 @@
 
     <div class="drawer-body">
 
-      <!-- Appearance -->
-      <div>
-        <div class="settings-section-label">Appearance</div>
-        <div class="settings-row">
-          <span class="settings-row-label">Theme</span>
-          <div class="btn-group" id="theme-group">
-            <button class="btn-opt" data-value="dark"  id="theme-dark">🌙 Dark</button>
-            <button class="btn-opt" data-value="light" id="theme-light">☀️ Light</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="drawer-divider"></div>
-
       <!-- Layout -->
       <div>
         <div class="settings-section-label">Layout</div>
@@ -1093,9 +1139,23 @@
         </div>
       </div>
 
+      <div class="drawer-divider"></div>
+
+      <!-- Wallpaper -->
+      <div>
+        <div class="settings-section-label">Wallpaper</div>
+        <div class="settings-row settings-row-stacked">
+          <span class="settings-row-label">Background</span>
+          <div class="btn-group background-picker" id="background-group">
+            <p style="font-size:11px;color:var(--text-3)">Loading...</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </aside>
 
+  <script src="background-images.js"></script>
   <script src="newtab.js"></script>
 </body>
 </html>

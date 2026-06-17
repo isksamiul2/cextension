@@ -5,9 +5,14 @@
 
 /* ── DEFAULTS ──────────────────────────────────────────────────────── */
 const DEFAULTS = {
-  theme: 'dark', view: 'grid', cardSize: 'md', hiddenCategories: [],
+  theme: 'dark', view: 'grid', cardSize: 'md', backgroundImage: 'image_low.jpg', hiddenCategories: [],
 };
 let settings = { ...DEFAULTS };
+
+const BACKGROUND_IMAGE_FILES = Array.isArray(window.BACKGROUND_IMAGES) && window.BACKGROUND_IMAGES.length
+  ? window.BACKGROUND_IMAGES
+  : [DEFAULTS.backgroundImage];
+const BACKGROUND_IMAGES = new Set(BACKGROUND_IMAGE_FILES);
 
 /* ── DOM REFS ──────────────────────────────────────────────────────── */
 const main          = document.getElementById('main');
@@ -20,6 +25,7 @@ const noResults     = document.getElementById('no-results');
 const settingsClose = document.getElementById('settings-close');
 const settingsOverlay = document.getElementById('settings-overlay');
 const settingsDrawer  = document.getElementById('settings-drawer');
+const backgroundGroup = document.getElementById('background-group');
 const categoryToggles = document.getElementById('category-toggles');
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -234,8 +240,12 @@ function saveSettings() {
 function applySettings() {
   const html = document.documentElement;
   const body = document.body;
+  const backgroundImage = BACKGROUND_IMAGES.has(settings.backgroundImage)
+    ? settings.backgroundImage
+    : DEFAULTS.backgroundImage;
+  settings.theme = 'dark';
   html.toggleAttribute('data-theme', false);
-  if (settings.theme === 'light') html.setAttribute('data-theme', 'light');
+  document.documentElement.style.setProperty('--bg-image', `url("images/${backgroundImage}")`);
   body.classList.toggle('view-list', settings.view === 'list');
   body.classList.remove('card-sm','card-md','card-lg');
   body.classList.add(`card-${settings.cardSize}`);
@@ -249,12 +259,46 @@ function syncSettingsUI() {
   setActiveBtn('theme-group', settings.theme);
   setActiveBtn('view-group',  settings.view);
   setActiveBtn('size-group',  settings.cardSize);
+  setActiveBtn('background-group', settings.backgroundImage);
 }
 
 function setActiveBtn(groupId, value) {
   const g = document.getElementById(groupId);
   if (!g) return;
   g.querySelectorAll('.btn-opt').forEach(b => b.classList.toggle('active', b.dataset.value === value));
+}
+
+function formatBackgroundName(fileName, index) {
+  const cleanName = fileName
+    .replace(/\.[^.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .trim();
+  return cleanName || `Image ${index + 1}`;
+}
+
+function renderBackgroundOptions() {
+  if (!backgroundGroup) return;
+  backgroundGroup.innerHTML = '';
+  BACKGROUND_IMAGE_FILES.forEach((fileName, index) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-opt background-opt';
+    btn.type = 'button';
+    btn.dataset.value = fileName;
+    btn.title = fileName;
+
+    const img = document.createElement('img');
+    img.className = 'background-thumb';
+    img.src = `images/${fileName}`;
+    img.alt = '';
+    img.loading = 'lazy';
+
+    const name = document.createElement('span');
+    name.className = 'background-name';
+    name.textContent = formatBackgroundName(fileName, index);
+
+    btn.append(img, name);
+    backgroundGroup.appendChild(btn);
+  });
 }
 
 /* ── Settings drawer open/close ── */
@@ -283,8 +327,10 @@ function wireGroup(groupId, key) {
   });
 }
 wireGroup('theme-group', 'theme');
+wireGroup('background-group', 'backgroundImage');
 wireGroup('view-group',  'view');
 wireGroup('size-group',  'cardSize');
+renderBackgroundOptions();
 
 function buildCategoryToggles(titles) {
   categoryToggles.innerHTML = '';
