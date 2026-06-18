@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Bookmark Viewer",
+  "name": "\u200B",
   "version": "1.0.0",
   "description": "Replaces the new tab page with a list of all your bookmarks.",
   "permissions": [
@@ -10,11 +10,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "images/*.jpg",
-        "images/*.jpeg",
-        "images/*.png",
-        "images/*.webp",
-        "images/*.gif"
+        "images/image_low.jpg",
+        "images/image2.jpg"
       ],
       "matches": [
         "<all_urls>"

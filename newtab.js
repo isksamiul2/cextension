@@ -9,9 +9,10 @@ const DEFAULTS = {
 };
 let settings = { ...DEFAULTS };
 
-const BACKGROUND_IMAGE_FILES = Array.isArray(window.BACKGROUND_IMAGES) && window.BACKGROUND_IMAGES.length
-  ? window.BACKGROUND_IMAGES
-  : [DEFAULTS.backgroundImage];
+const BACKGROUND_IMAGE_FILES = [
+  'image_low.jpg',
+  'image2.jpg',
+];
 const BACKGROUND_IMAGES = new Set(BACKGROUND_IMAGE_FILES);
 
 /* ── DOM REFS ──────────────────────────────────────────────────────── */
